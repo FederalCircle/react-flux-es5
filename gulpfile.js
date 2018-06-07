@@ -1,13 +1,24 @@
 const gulp = require('gulp')
 const connect = require('gulp-connect')
 const open = require('gulp-open')
+const browserify = require('browserify')
+const reactify = require('reactify')
+const source = require('vinyl-source-stream')
+const concat = require('gulp-concat')
+const lint = require('gulp-eslint')
 
 const config = {
   port: 8083,
   devBaseUrl: 'http://localhost',
   paths: {
     html: './src/*.html',
-    dist: './dist'
+    js: './src/**/*.js',
+    css: [
+      './node_modules/bootstrap/dist/css/bootstrap.min.css',
+      './node_modules/bootstrap/dist/css/bootstrap-theme.min.css'
+    ],
+    dist: './dist',
+    app: './src/index.js'
   }
 }
 
@@ -33,8 +44,31 @@ gulp.task('html', () => {
     .pipe(connect.reload())
 })
 
-gulp.task('watch', () => {
-  gulp.watch(config.paths.html, ['html'])
+gulp.task('js', () => {
+  browserify(config.paths.app)
+    .transform(reactify)
+    .bundle()
+    .on('error', console.error.bind(console))
+    .pipe(source('bundle.js'))
+    .pipe(gulp.dest(`${config.paths.dist}/scripts/`))
+    .pipe(connect.reload())
 })
 
-gulp.task('default', ['html', 'open', 'watch'])
+gulp.task('css', () => {
+  gulp.src(config.paths.css)
+    .pipe(concat('bundle.css'))
+    .pipe(gulp.dest(config.paths.dist + '/css'));
+})
+
+// gulp.task('lint', () => {
+//   return gulp.src(config.paths.js)
+//     .pipe(lint())
+//     .pipe(lint.format())
+// })
+
+gulp.task('watch', () => {
+  gulp.watch(config.paths.html, ['html'])
+  gulp.watch(config.paths.js, ['js', 'lint'])
+})
+
+gulp.task('default', ['html', 'js', 'css'/*, 'lint'*/, 'open', 'watch'])
