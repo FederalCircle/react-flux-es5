@@ -68,7 +68,7 @@ gulp.task('css', () => {
 
 gulp.task('watch', () => {
   gulp.watch(config.paths.html, ['html'])
-  gulp.watch(config.paths.js, ['js', 'lint'])
+  gulp.watch(config.paths.js, ['js'])
 })
 
 gulp.task('default', ['html', 'js', 'css'/*, 'lint'*/, 'open', 'watch'])
